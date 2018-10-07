@@ -33,7 +33,9 @@ export class Reacteroids extends Component {
       asteroidCount: 3,
       currentScore: 0,
       topScore: localStorage['topscore'] || 0,
-      inGame: false
+      inGame: false,
+      isDebounce: false,
+      waitTime: 300
     }
     this.ship = [];
     this.asteroids = [];
@@ -253,6 +255,78 @@ export class Reacteroids extends Component {
           Use [A][S][W][D] or [←][↑][↓][→] to MOVE<br/>
           Use [SPACE] to SHOOT
         </span>
+        <div className="debouceControls" onKeyDown={ e => e.stopPropagation()}>
+          Shot mode :&nbsp;
+          <label>
+            <input type="radio" name="shotType" 
+            value="debounce" 
+            defaultChecked={false} 
+            onChange={(e)=>{
+              this.setState({
+                isDebounce: true
+              });
+              e.target.blur();
+            }} />
+            debounce
+          </label>
+          &nbsp;&nbsp;
+          <label>
+            <input type="radio" name="shotType" 
+              value="throttle" 
+              defaultChecked={true} 
+              onChange={(e)=>{
+                this.setState({
+                  isDebounce: false
+                });
+                e.target.blur();
+              }} />
+              throttle
+          </label>
+          <div>
+            wait : &nbsp;
+            <label>
+              <input type="radio" name="waitTime" 
+                value="zzz"
+                defaultChecked={false} 
+                onChange={(e)=>{
+                  this.setState({
+                    waitTime: 10
+                  });
+                  e.target.blur();
+                }} />
+              10
+            </label>
+            &nbsp;&nbsp;
+            <label>
+              <input type="radio" name="waitTime" 
+                value="300"
+                defaultChecked={true} 
+                onChange={(e)=>{
+                  this.setState({
+                    waitTime: 300
+                  });
+                  e.target.blur();
+                }} />
+              300
+            </label>
+            &nbsp;&nbsp;
+            <label>
+              <input type="radio" name="waitTime" 
+                value="1000"
+                defaultChecked={false} 
+                onChange={(e)=>{
+                  this.setState({
+                    waitTime: 1000
+                  });
+                  e.target.blur();
+                }} />
+              1000
+            </label>
+          </div>
+          <div>
+            <a href="http://class.codejong.kr/">관련 동영상 및 설명 글 보기</a>
+          </div>
+        </div>
         <canvas ref="canvas"
           width={this.state.screen.width * this.state.screen.ratio}
           height={this.state.screen.height * this.state.screen.ratio}

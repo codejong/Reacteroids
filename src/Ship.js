@@ -1,6 +1,7 @@
 import Bullet from './Bullet';
 import Particle from './Particle';
 import { rotatePoint, randomNumBetween } from './helpers';
+import _ from 'lodash';
 
 export default class Ship {
   constructor(args) {
@@ -15,8 +16,29 @@ export default class Ship {
     this.inertia = 0.99;
     this.radius = 20;
     this.lastShot = 0;
+    this.lastSpace = 0;
     this.create = args.create;
     this.onDie = args.onDie;
+
+    this.waitTime = 1000
+
+    const originalFire = () => {
+      const bullet = new Bullet({ship: this});
+      this.create(bullet, 'bullets');
+      this.lastShot = Date.now();
+    }
+
+    const invokeOption = {
+      leading: true,
+      trailing: false
+    };
+    this.debouncedFire10 = _.debounce(originalFire, 10, invokeOption);
+    this.debouncedFire300 = _.debounce(originalFire, 300, invokeOption);
+    this.debouncedFire1000 = _.debounce(originalFire, 1000, invokeOption);
+
+    this.throttledFire10 = _.throttle(originalFire, 10, invokeOption);
+    this.throttledFire300 = _.throttle(originalFire, 300, invokeOption);
+    this.throttledFire1000 = _.throttle(originalFire, 1000, invokeOption);
   }
 
   destroy(){
@@ -82,10 +104,10 @@ export default class Ship {
     if(state.keys.right){
       this.rotate('RIGHT');
     }
-    if(state.keys.space && Date.now() - this.lastShot > 300){
-      const bullet = new Bullet({ship: this});
-      this.create(bullet, 'bullets');
-      this.lastShot = Date.now();
+    
+    if(state.keys.space){
+      state.isDebounce ? this['debouncedFire'+state.waitTime]() : this['throttledFire'+state.waitTime]();
+      this.lastSpace = Date.now();
     }
 
     // Move
@@ -114,7 +136,11 @@ export default class Ship {
     context.translate(this.position.x, this.position.y);
     context.rotate(this.rotation * Math.PI / 180);
     context.strokeStyle = '#ffffff';
-    context.fillStyle = '#000000';
+
+    const gap = new Date() - (state.isDebounce ? this.lastSpace : this.lastShot);
+    const waitAlpha = Math.min(1, gap / this.waitTime);
+
+    context.fillStyle = waitAlpha === 1 ? '#00ff00' : `rgba(255, 0, 0, ${waitAlpha})`;
     context.lineWidth = 2;
     context.beginPath();
     context.moveTo(0, -15);
